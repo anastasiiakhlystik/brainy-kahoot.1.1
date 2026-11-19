@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Вікторина: А і О</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#46178f;--bg2:#381272;--red:#e21b3c;--blue:#1368ce;--yellow:#d89e00;--green:#26890c;--ink:#2E2A40}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;font-family:'Nunito',system-ui,sans-serif;color:#fff;
+       background:radial-gradient(circle at 20% 10%,#5a22b0 0,var(--bg) 40%,var(--bg2) 100%);display:flex;flex-direction:column}
+  .top{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;gap:12px}
+  .pill{background:rgba(255,255,255,.18);border-radius:99px;padding:8px 16px;font-weight:900;font-size:18px}
+  .screen{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;padding:10px 16px 24px;gap:18px}
+  .screen.show{display:flex}
+  .logo{font-size:clamp(40px,8vw,84px);font-weight:900;text-align:center;line-height:1.05;text-shadow:0 6px 0 rgba(0,0,0,.25)}
+  .logo span{display:inline-block;background:#fff;color:var(--bg);border-radius:22px;padding:0 18px;margin:0 6px}
+  .sub{font-size:22px;opacity:.9;text-align:center}
+  .big-btn{border:none;border-radius:18px;background:#fff;color:var(--bg);font:inherit;font-weight:900;font-size:28px;
+       padding:16px 44px;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.3);transition:transform .1s}
+  .big-btn:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.3)}
+  .who{display:flex;gap:10px}
+  .who button{border:none;border-radius:14px;padding:8px 16px;font:inherit;font-weight:800;font-size:18px;cursor:pointer;background:rgba(255,255,255,.2);color:#fff}
+  .who button.on{background:#fff;color:var(--bg)}
+  .progress{width:min(900px,100%);height:12px;background:rgba(255,255,255,.2);border-radius:99px;overflow:hidden}
+  .progress div{height:100%;background:#fff;width:0;transition:width .3s}
+  .qcard{background:#fff;color:var(--ink);border-radius:26px;width:min(900px,100%);padding:22px 24px;text-align:center;
+       box-shadow:0 8px 0 rgba(0,0,0,.25)}
+  .qtext{font-size:clamp(24px,4vw,38px);font-weight:900}
+  .qpic{font-size:clamp(90px,16vw,170px);line-height:1.1;margin-top:6px}
+  .qpic.letter{font-weight:900;color:var(--bg)}
+  .qpic.small{font-size:clamp(46px,8vw,80px);letter-spacing:12px;font-weight:900;color:var(--ink)}
+  .answers{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:min(900px,100%)}
+  .ans{border:none;border-radius:18px;color:#fff;font:inherit;font-weight:900;font-size:clamp(24px,4vw,42px);min-height:110px;
+       display:flex;align-items:center;gap:16px;padding:14px 22px;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.3);
+       transition:transform .1s,opacity .2s,filter .2s;text-align:left}
+  .ans:active{transform:translateY(4px)}
+  .ans .shape{font-size:34px;opacity:.95;flex:none}
+  .ans.c0{background:var(--red)} .ans.c1{background:var(--blue)} .ans.c2{background:var(--yellow)} .ans.c3{background:var(--green)}
+  .ans.dim{opacity:.25;filter:grayscale(.6)}
+  .ans.right{outline:6px solid #fff;outline-offset:3px}
+  .ans.right::after{content:'✔';margin-left:auto;font-size:40px}
+  .ans.wrong::after{content:'✖';margin-left:auto;font-size:40px}
+  .ans:disabled{cursor:default}
+  .feedback{display:none;flex-direction:column;align-items:center;gap:12px}
+  .feedback.show{display:flex;animation:pop .3s}
+  .fb-title{font-size:clamp(30px,5vw,48px);font-weight:900;padding:10px 30px;border-radius:18px}
+  .fb-title.ok{background:var(--green)} .fb-title.no{background:var(--red)}
+  .fb-pts{font-size:22px;font-weight:800}
+  @keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+  .final-stars{font-size:clamp(60px,12vw,110px);letter-spacing:8px}
+  .score-big{font-size:clamp(34px,6vw,60px);font-weight:900}
+  .confetti{position:fixed;top:-20px;width:12px;height:18px;border-radius:3px;animation:fall linear forwards;pointer-events:none;z-index:9}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+  .note{font-size:14px;opacity:.7;text-align:center;max-width:700px}
+  @media (max-width:560px){.answers{grid-template-columns:1fr}.ans{min-height:80px}}
+</style>
+</head>
+<body>
+  <div class="top">
+    <div class="pill" id="qnum">Літерка · Урок 1.1</div>
+    <div class="pill" id="score">⭐ 0</div>
+  </div>
+
+  <!-- START -->
+  <section class="screen show" id="s-start">
+    <div class="logo">Вікторина<br><span>А</span> і <span>О</span></div>
+    <div class="sub">10 запитань про наших друзів-літер і пальчики. Без поспіху!</div>
+    <div class="who"><button id="g-f">👧 дівчинка</button><button id="g-m">👦 хлопчик</button></div>
+    <button class="big-btn" id="startBtn">▶ Почати</button>
+    <div class="note">Для вчителя: можна показати через демонстрацію екрана, діти кажуть відповідь, а ви натискаєте. Або дайте посилання кожній дитині.</div>
+  </section>
+
+  <!-- QUESTION -->
+  <section class="screen" id="s-q">
+    <div class="progress"><div id="bar"></div></div>
+    <div class="qcard">
+      <div class="qtext" id="qtext"></div>
+      <div class="qpic" id="qpic"></div>
+    </div>
+    <div class="answers" id="answers"></div>
+    <div class="feedback" id="feedback">
+      <div class="fb-title" id="fbTitle"></div>
+      <div class="fb-pts" id="fbPts"></div>
+      <button class="big-btn" id="nextBtn">Далі →</button>
+    </div>
+  </section>
+
+  <!-- FINAL -->
+  <section class="screen" id="s-final">
+    <div class="logo" id="finalTitle">Ура!</div>
+    <div class="final-stars" id="finalStars">⭐⭐⭐</div>
+    <div class="score-big" id="finalScore"></div>
+    <div class="sub" id="finalText"></div>
+    <button class="big-btn" id="againBtn">↻ Зіграти ще раз</button>
+  </section>
+
+<script>
+(function(){
+  const Q = [
+    {t:'Яка це літера?', pic:'А', kind:'letter', ok:'А', opts:['А','О','М','К']},
+    {t:'Яка це літера?', pic:'О', kind:'letter', ok:'О', opts:['О','А','С','Т']},
+    {t:'З якої літери починається слово?', pic:'🍍<div style="font-size:.3em;font-weight:900;color:#2E2A40">Ананас</div>', ok:'А', opts:['А','О']},
+    {t:'З якої літери починається слово?', pic:'🥒<div style="font-size:.3em;font-weight:900;color:#2E2A40">Огірок</div>', ok:'О', opts:['О','А']},
+    {t:'Яким пальчиком натискаємо А?', pic:'⌨️', ok:'👈 Лівий вказівний', opts:['👈 Лівий вказівний','👉 Правий вказівний','👍 Великий','🤙 Мізинець']},
+    {t:'Яким пальчиком натискаємо О?', pic:'⌨️', ok:'👉 Правий вказівний', opts:['👉 Правий вказівний','👈 Лівий вказівний','👍 Великий','🤙 Мізинець']},
+    {t:'Де маленька літера а?', pic:'🔍', ok:'а', opts:['а','о','е','у']},
+    {t:'На яких літерах живуть горбики?', pic:'🏠', ok:'А і О', opts:['А і О','В і Л','П і Р','Ф і Ж']},
+    {t:'Скільки тут літер а?', pic:'а о а а о', kind:'small', ok:'3', opts:['3','2','4','1']},
+    {t:'Яким пальчиком натискаємо пробіл?', pic:'␣', ok:'👍 Великий', opts:['👍 Великий','👈 Лівий вказівний','👉 Правий вказівний','🤙 Мізинець']}
+  ];
+  const SHAPES=['▲','◆','●','■'];
+  const PRAISE=['Правильно!','Супер!','Так тримати!','Молодець!','Клас!'];
+  let order=[],i=0,score=0,right=0,streak=0,gender='';
+  try{gender=localStorage.getItem('kahoot-g')||''}catch(e){}
+  const $=id=>document.getElementById(id);
+  let ctx=null;
+  function tone(freqs,dur){try{ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();
+    freqs.forEach((f,k)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);
+      o.frequency.value=f;const t=ctx.currentTime+k*dur;g.gain.setValueAtTime(.13,t);g.gain.exponentialRampToValueAtTime(.001,t+dur*1.6);o.start(t);o.stop(t+dur*1.7)})}catch(e){}}
+  function shuffle(a){a=a.slice();for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]]}return a}
+  function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('show'));$(id).classList.add('show')}
+  function renderWho(){$('g-f').classList.toggle('on',gender==='f');$('g-m').classList.toggle('on',gender==='m')}
+  function setG(g){gender=g;try{localStorage.setItem('kahoot-g',g)}catch(e){}renderWho()}
+
+  function start(){order=shuffle(Q);i=0;score=0;right=0;streak=0;$('score').textContent='⭐ 0';show('s-q');ask()}
+  function ask(){
+    const q=order[i];
+    $('qnum').textContent='Запитання '+(i+1)+' з '+order.length;
+    $('bar').style.width=(i/order.length*100)+'%';
+    $('qtext').textContent=q.t;
+    const p=$('qpic');p.className='qpic'+(q.kind?' '+q.kind:'');p.innerHTML=q.pic;
+    const box=$('answers');box.innerHTML='';
+    shuffle(q.opts).forEach((o,k)=>{
+      const b=document.createElement('button');b.className='ans c'+k;
+      b.innerHTML='<span class="shape">'+SHAPES[k]+'</span><span>'+o+'</span>';
+      b.dataset.v=o;b.onclick=()=>choose(b,q);box.appendChild(b)});
+    $('feedback').classList.remove('show');
+  }
+  function choose(btn,q){
+    const all=[...document.querySelectorAll('.ans')];all.forEach(b=>b.disabled=true);
+    const ok=btn.dataset.v===q.ok;
+    all.forEach(b=>{if(b.dataset.v===q.ok)b.classList.add('right');else b.classList.add('dim')});
+    if(!ok){btn.classList.remove('dim');btn.classList.add('wrong')}
+    const t=$('fbTitle');
+    if(ok){right++;streak++;const pts=1000+(streak>1?100*(streak-1):0);score+=pts;
+      t.className='fb-title ok';t.textContent='✔ '+PRAISE[Math.floor(Math.random()*PRAISE.length)];
+      $('fbPts').textContent='+'+pts+' балів'+(streak>1?' · 🔥 Серія '+streak:'');tone([660,880],.12)}
+    else{streak=0;t.className='fb-title no';t.textContent='Ой! Правильно: '+q.ok;
+      $('fbPts').textContent='Нічого страшного, наступне вийде!';tone([300,220],.15)}
+    $('score').textContent='⭐ '+score;
+    $('nextBtn').textContent= i<order.length-1?'Далі →':'Результат 🏆';
+    $('feedback').classList.add('show');
+  }
+  function next(){i++; if(i<order.length) ask(); else finish()}
+  function finish(){
+    $('bar').style.width='100%';
+    const n=order.length,stars= right>=n-1?3: right>=Math.ceil(n*0.6)?2:1;
+    $('finalStars').textContent='⭐'.repeat(stars)+'☆'.repeat(3-stars);
+    const verb= gender==='f'?'Ти круто впоралася!': gender==='m'?'Ти круто впорався!':'Ти круто впорав(ла)ся!';
+    $('finalTitle').textContent= stars===3?'Ура! 🎉': stars===2?'Молодець!':'Гарна спроба!';
+    $('finalScore').textContent='Правильно: '+right+' з '+n+' · ⭐ '+score;
+    $('finalText').textContent= stars===3? verb+' А і О тепер твої друзі!' : 'Зіграй ще раз, щоб отримати 3 зірки!';
+    $('qnum').textContent='Готово!';
+    show('s-final'); tone([523,659,784,1046],.12); if(stars>=2) confetti();
+  }
+  function confetti(){const cols=['#e21b3c','#1368ce','#d89e00','#26890c','#fff'];
+    for(let k=0;k<80;k++){const d=document.createElement('div');d.className='confetti';
+      d.style.left=Math.random()*100+'vw';d.style.background=cols[k%cols.length];
+      d.style.animationDuration=(2+Math.random()*2)+'s';d.style.animationDelay=Math.random()*.6+'s';
+      document.body.appendChild(d);setTimeout(()=>d.remove(),5000)}}
+
+  $('startBtn').onclick=start;$('againBtn').onclick=start;$('nextBtn').onclick=next;
+  $('g-f').onclick=()=>setG('f');$('g-m').onclick=()=>setG('m');renderWho();
+})();
+</script>
+</body>
+</html>
